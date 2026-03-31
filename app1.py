@@ -82,9 +82,14 @@ st.markdown("""
 # --- 2. SETUP KONEKSI ---
 @st.cache_resource
 def get_services():
-    creds_info = dict(st.secrets["gcp_service_account"])
-    if "private_key" in creds_info:
-        creds_info["private_key"] = creds_info["private_key"].strip().replace("\\n", "\n")
+    # Mengambil data dari secrets
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    
+    # PERBAIKAN: Pastikan private_key diproses dengan benar
+    if "private_key" in creds_dict:
+        # Menghapus spasi dan memastikan \n terbaca sebagai karakter baris baru yang nyata
+        p_key = creds_dict["private_key"].strip()
+        creds_dict["private_key"] = p_key.replace("\\n", "\n")
     
     scope = [
         "https://spreadsheets.google.com/feeds",
@@ -92,7 +97,8 @@ def get_services():
         "https://www.googleapis.com/auth/spreadsheets"
     ]
     
-    creds = service_account.Credentials.from_service_account_info(creds_info, scopes=scope)
+    # Menggunakan dictionary yang sudah dibersihkan
+    creds = service_account.Credentials.from_service_account_info(creds_dict, scopes=scope)
     gc = gspread.authorize(creds)
     drive = build('drive', 'v3', credentials=creds, cache_discovery=False)
     return gc, drive
